@@ -10,6 +10,16 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Все");
+
+  const categories = [
+    { name: "Все", icon: "Grid3x3", count: 12 },
+    { name: "Computer Science", icon: "Cpu", count: 4 },
+    { name: "Environmental Science", icon: "Leaf", count: 3 },
+    { name: "Medicine", icon: "Heart", count: 2 },
+    { name: "Engineering", icon: "Cog", count: 2 },
+    { name: "Physics", icon: "Atom", count: 1 }
+  ];
 
   const articles = [
     {
@@ -20,7 +30,8 @@ const Index = () => {
       category: "Computer Science",
       citations: 156,
       published: "2024",
-      readTime: "15 min"
+      readTime: "15 min",
+      recommended: true
     },
     {
       id: 2,
@@ -30,7 +41,8 @@ const Index = () => {
       category: "Environmental Science",
       citations: 243,
       published: "2024",
-      readTime: "20 min"
+      readTime: "20 min",
+      recommended: false
     },
     {
       id: 3,
@@ -40,7 +52,8 @@ const Index = () => {
       category: "Medicine",
       citations: 189,
       published: "2023",
-      readTime: "18 min"
+      readTime: "18 min",
+      recommended: true
     },
     {
       id: 4,
@@ -50,9 +63,23 @@ const Index = () => {
       category: "Engineering",
       citations: 127,
       published: "2024",
-      readTime: "12 min"
+      readTime: "12 min",
+      recommended: false
+    },
+    {
+      id: 5,
+      title: "Deep Learning Architectures for Natural Language Processing",
+      abstract: "Comparative analysis of transformer models in language understanding tasks...",
+      authors: ["Dr. Mikhail Smirnov"],
+      category: "Computer Science",
+      citations: 201,
+      published: "2024",
+      readTime: "22 min",
+      recommended: true
     }
   ];
+
+  const userInterests = ["Computer Science", "Medicine"];
 
   const userStats = {
     name: "Алексей Петров",
@@ -62,11 +89,17 @@ const Index = () => {
     publications: 8
   };
 
-  const filteredArticles = articles.filter(article =>
-    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.category.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "Все" || article.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const recommendedArticles = articles.filter(article => article.recommended);
 
   const HomePage = () => (
     <div className="space-y-8 animate-fade-in">
@@ -122,7 +155,87 @@ const Index = () => {
         </Card>
       </div>
 
+      <Card className="bg-gradient-to-br from-accent/10 via-primary/5 to-accent/5 border-accent/20">
+        <CardHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-accent/20 rounded-lg">
+              <Icon name="Sparkles" className="text-accent" size={24} />
+            </div>
+            <CardTitle className="text-2xl">Рекомендации для вас</CardTitle>
+          </div>
+          <CardDescription>На основе ваших интересов: {userInterests.join(", ")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {recommendedArticles.map((article) => (
+              <Card key={article.id} className="hover:shadow-md transition-all bg-white">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                          {article.category}
+                        </Badge>
+                        <Badge className="bg-accent text-white border-0">
+                          <Icon name="Star" size={12} className="mr-1" />
+                          Для вас
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg mb-1">{article.title}</CardTitle>
+                      <CardDescription className="text-sm">{article.abstract}</CardDescription>
+                    </div>
+                    <Button variant="ghost" size="icon" className="shrink-0">
+                      <Icon name="Bookmark" size={18} />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Icon name="Quote" size={14} />
+                        <span>{article.citations}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Icon name="Clock" size={14} />
+                        <span>{article.readTime}</span>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
+                      <Icon name="BookOpen" size={14} className="mr-1" />
+                      Читать
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <div>
+        <h2 className="text-2xl font-bold mb-4">Категории научных направлений</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+          {categories.map((cat) => (
+            <Button
+              key={cat.name}
+              variant={selectedCategory === cat.name ? "default" : "outline"}
+              className={`h-auto py-4 flex-col gap-2 ${
+                selectedCategory === cat.name 
+                  ? "bg-primary hover:bg-primary/90" 
+                  : "hover:bg-primary/5 hover:border-primary/30"
+              }`}
+              onClick={() => setSelectedCategory(cat.name)}
+            >
+              <Icon name={cat.icon} size={24} />
+              <div className="text-center">
+                <div className="font-semibold text-sm">{cat.name}</div>
+                <div className="text-xs opacity-70">{cat.count} статей</div>
+              </div>
+            </Button>
+          ))}
+        </div>
+
         <h2 className="text-2xl font-bold mb-6">Последние Публикации</h2>
         <div className="grid gap-6">
           {filteredArticles.map((article) => (
@@ -247,6 +360,34 @@ const Index = () => {
                 <Badge variant="outline" className="ml-4">{article.category}</Badge>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Мои Интересы</CardTitle>
+          <CardDescription>Выберите научные направления, которые вас интересуют</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {categories.filter(c => c.name !== "Все").map((cat) => {
+              const isSelected = userInterests.includes(cat.name);
+              return (
+                <Badge
+                  key={cat.name}
+                  variant={isSelected ? "default" : "outline"}
+                  className={`cursor-pointer px-4 py-2 text-sm ${
+                    isSelected 
+                      ? "bg-primary hover:bg-primary/90" 
+                      : "hover:bg-primary/10 hover:border-primary/50"
+                  }`}
+                >
+                  <Icon name={cat.icon} size={14} className="mr-2" />
+                  {cat.name}
+                </Badge>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
